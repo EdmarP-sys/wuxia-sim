@@ -1,0 +1,1937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <title>仙途 v2 · Immortal Path</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet"/>
+  <style>
+    /* ─── DESIGN TOKENS ─────────────────────────────── */
+    :root {
+      --bg:        #0a0b0d;
+      --surface:   #111318;
+      --surface2:  #191d26;
+      --border:    #2a2e3a;
+      --gold:      #c9a84c;
+      --gold-dim:  #7a6030;
+      --crimson:   #9b2335;
+      --jade:      #3a7d6e;
+      --text:      #e4d8c0;
+      --text-dim:  #6e6452;
+      --fire:      #e05c2a;
+      --water:     #4a9eca;
+      --wood:      #4ea84a;
+      --metal:     #c0bdb8;
+      --earth:     #c87c2a;
+      --purple:    #8a5faf;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IM Fell English', serif;
+      font-size: 15px;
+      overflow: hidden;
+    }
+
+    /* ─── LAYOUT SHELL ──────────────────────────────── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      max-width: 480px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .screen { display: none; flex-direction: column; height: 100%; }
+    .screen.active { display: flex; }
+
+    /* ══════════════════════════════════════════════════
+       SCREEN 1 — CHARACTER CREATION
+    ══════════════════════════════════════════════════ */
+    #screen-create {
+      padding: 24px 20px;
+      overflow-y: auto;
+      gap: 20px;
+      background:
+        radial-gradient(ellipse at 20% 80%, rgba(155,35,53,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(74,158,202,0.10) 0%, transparent 60%),
+        var(--bg);
+    }
+
+    .create-title { text-align: center; padding-top: 8px; }
+    .create-title h1 {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 22px; color: var(--gold); letter-spacing: 2px;
+      line-height: 1.3; text-shadow: 0 0 30px rgba(201,168,76,0.4);
+    }
+    .create-title p { font-style: italic; color: var(--text-dim); font-size: 13px; margin-top: 6px; }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold-dim), transparent);
+      margin: 4px 0;
+    }
+    .field-label {
+      font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 2px;
+      color: var(--gold-dim); text-transform: uppercase; margin-bottom: 8px;
+    }
+    .name-row { display: flex; gap: 8px; }
+
+    .text-input {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text); font-family: 'IM Fell English', serif;
+      font-size: 16px; padding: 10px 12px; outline: none; transition: border-color 0.2s;
+      width: 100%;
+    }
+    .text-input:focus { border-color: var(--gold-dim); }
+    .text-input::placeholder { color: var(--text-dim); }
+
+    .btn-sm {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 4px;
+      color: var(--text-dim); font-family: 'Cinzel', serif; font-size: 10px;
+      padding: 8px 12px; cursor: pointer; transition: all 0.2s; letter-spacing: 1px; white-space: nowrap;
+    }
+    .btn-sm:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+    .root-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .root-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 10px 4px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; cursor: pointer; transition: all 0.2s;
+      font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.5px; color: var(--text-dim);
+    }
+    .root-btn .elem-icon { font-size: 18px; }
+    .root-btn.selected { border-color: var(--gold); background: rgba(201,168,76,0.08); color: var(--gold); }
+
+    .root-info {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 14px; min-height: 80px;
+    }
+    .root-info .root-name { font-family: 'Cinzel', serif; font-size: 14px; color: var(--gold); margin-bottom: 6px; }
+    .root-info p { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+    .root-tag {
+      display: inline-block; margin-top: 8px; padding: 2px 8px; border-radius: 2px;
+      font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 1px;
+    }
+    .tag-easy   { background: rgba(78,168,74,0.15);  color: var(--wood);   border: 1px solid var(--wood); }
+    .tag-medium { background: rgba(201,168,76,0.10); color: var(--gold);   border: 1px solid var(--gold-dim); }
+    .tag-hard   { background: rgba(155,35,53,0.15);  color: var(--crimson);border: 1px solid var(--crimson); }
+
+    #btn-begin {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, #3a1a0a 0%, #6b2020 50%, #3a1a0a 100%);
+      border: 1px solid var(--crimson); border-radius: 6px; color: var(--gold);
+      font-family: 'Cinzel Decorative', serif; font-size: 14px; letter-spacing: 2px;
+      cursor: pointer; transition: all 0.3s;
+      text-shadow: 0 0 20px rgba(201,168,76,0.5); margin-top: 4px; margin-bottom: 16px;
+    }
+    #btn-begin:hover {
+      background: linear-gradient(135deg, #5a2a1a 0%, #9b2020 50%, #5a2a1a 100%);
+      box-shadow: 0 0 24px rgba(155,35,53,0.4);
+    }
+
+    /* ══════════════════════════════════════════════════
+       SCREEN 2 — MAIN GAME
+    ══════════════════════════════════════════════════ */
+    #screen-game { overflow: hidden; }
+
+    /* ── Stats Header ── */
+    #stats-header {
+      flex-shrink: 0; background: var(--surface);
+      border-bottom: 1px solid var(--border); padding: 8px 14px 10px;
+    }
+    .stats-top {
+      display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px;
+    }
+    .char-title  { font-family: 'Cinzel', serif; font-size: 13px; color: var(--gold); letter-spacing: 1px; }
+    .char-realm  { font-family: 'Cinzel', serif; font-size: 9px; color: var(--text-dim); letter-spacing: 1px; }
+
+    .stats-row {
+      display: grid; gap: 4px; grid-template-columns: repeat(4, 1fr); margin-top: 5px;
+    }
+    .stats-row.five-col { grid-template-columns: repeat(5, 1fr); }
+
+    .stat-pill {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 4px; padding: 4px 5px; text-align: center;
+    }
+    .stat-pill .s-label {
+      font-family: 'Cinzel', serif; font-size: 7px; letter-spacing: 1px;
+      color: var(--text-dim); display: block; text-transform: uppercase;
+    }
+    .stat-pill .s-val {
+      font-family: 'Cinzel', serif; font-size: 12px; color: var(--text); display: block; margin-top: 1px;
+    }
+    .s-val.gold   { color: var(--gold); }
+    .s-val.jade   { color: var(--jade); }
+    .s-val.purple { color: var(--purple); }
+    .s-val.fire   { color: var(--fire); }
+
+    .roots-display { display: flex; gap: 4px; margin-top: 5px; align-items: center; flex-wrap: wrap; }
+    .root-chip {
+      padding: 2px 6px; border-radius: 2px;
+      font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 1px; border: 1px solid;
+    }
+    .sect-badge {
+      padding: 2px 7px; border-radius: 2px;
+      font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 1px;
+      background: rgba(138,95,175,0.15); color: var(--purple); border: 1px solid var(--purple);
+      margin-left: auto;
+    }
+
+    .qi-bar-wrap {
+      margin-top: 6px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 3px; height: 4px; overflow: hidden;
+    }
+    #qi-bar { height: 100%; background: linear-gradient(to right, var(--jade), var(--gold)); width: 0%; transition: width 0.4s ease; }
+
+    /* ── Game Log ── */
+    #game-log {
+      flex: 1; overflow-y: auto; padding: 10px 14px;
+      display: flex; flex-direction: column; gap: 5px;
+      scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+    }
+    #game-log::-webkit-scrollbar { width: 4px; }
+    #game-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .log-entry {
+      padding: 7px 10px; background: var(--surface);
+      border-left: 2px solid var(--border); border-radius: 0 4px 4px 0;
+      font-size: 13px; line-height: 1.5; color: var(--text-dim);
+      animation: fadeSlide 0.3s ease;
+    }
+    .log-entry.type-event   { border-left-color: var(--gold-dim); color: var(--text); }
+    .log-entry.type-success { border-left-color: var(--jade); color: #7fcfbf; }
+    .log-entry.type-danger  { border-left-color: var(--crimson); color: #d4707a; }
+    .log-entry.type-system  { border-left-color: var(--text-dim); font-style: italic; }
+    .log-entry.type-sect    { border-left-color: var(--purple); color: #b08fd4; }
+    .log-age {
+      font-family: 'Cinzel', serif; font-size: 9px; color: var(--text-dim);
+      letter-spacing: 1px; margin-bottom: 2px; display: block;
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Action Panel ── */
+    #action-panel { flex-shrink: 0; background: var(--surface); border-top: 1px solid var(--border); }
+
+    .tab-bar { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--border); }
+    .tab-btn {
+      padding: 9px 4px 7px; background: none; border: none; color: var(--text-dim);
+      font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 1px; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      transition: color 0.2s; text-transform: uppercase;
+    }
+    .tab-btn .tab-icon { font-size: 15px; }
+    .tab-btn.active { color: var(--gold); }
+    .tab-btn.active .tab-icon { filter: drop-shadow(0 0 4px rgba(201,168,76,0.6)); }
+
+    .action-tab { display: none; padding: 9px 12px 13px; flex-direction: column; gap: 6px; }
+    .action-tab.active { display: flex; }
+    .action-row { display: flex; gap: 6px; }
+
+    .btn-action {
+      flex: 1; padding: 10px 7px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 5px; color: var(--text); font-family: 'Cinzel', serif; font-size: 9px;
+      letter-spacing: 1px; cursor: pointer; transition: all 0.18s; text-align: center; line-height: 1.4;
+    }
+    .btn-action:hover:not(:disabled) { border-color: var(--gold-dim); color: var(--gold); background: rgba(201,168,76,0.05); }
+    .btn-action:disabled { opacity: 0.30; cursor: not-allowed; }
+    .btn-action.primary  { border-color: var(--jade); color: var(--jade); background: rgba(58,125,110,0.08); }
+    .btn-action.primary:hover:not(:disabled) { border-color: #5aefcf; background: rgba(58,125,110,0.15); color: #7fcfbf; }
+    .btn-action.danger   { border-color: var(--crimson); color: #c05060; background: rgba(155,35,53,0.07); }
+    .btn-action.danger:hover:not(:disabled)  { background: rgba(155,35,53,0.15); color: #e07080; }
+    .btn-action.purple   { border-color: var(--purple); color: var(--purple); background: rgba(138,95,175,0.07); }
+    .btn-action.purple:hover:not(:disabled)  { background: rgba(138,95,175,0.15); color: #b08fd4; }
+
+    /* ══════════════════════════════════════════════════
+       SCREEN 3 — DEATH / SUCCESSION
+    ══════════════════════════════════════════════════ */
+    #screen-death {
+      padding: 24px 20px; overflow-y: auto; gap: 18px;
+      align-items: center; text-align: center;
+      background: radial-gradient(ellipse at 50% 40%, rgba(155,35,53,0.18) 0%, transparent 70%), var(--bg);
+    }
+    .death-title {
+      font-family: 'Cinzel Decorative', serif; font-size: 26px; color: var(--crimson);
+      text-shadow: 0 0 40px rgba(155,35,53,0.6); letter-spacing: 3px;
+    }
+    .death-epitaph {
+      font-style: italic; color: var(--text-dim); font-size: 14px;
+      line-height: 1.7; max-width: 340px;
+    }
+    .death-epitaph strong { color: var(--gold); font-style: normal; }
+
+    .clan-report {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 16px; width: 100%; text-align: left;
+    }
+    .clan-report h3 {
+      font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 2px;
+      color: var(--gold); margin-bottom: 10px; text-transform: uppercase;
+    }
+    .clan-report ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+    .clan-report li {
+      font-size: 12px; color: var(--text-dim);
+      display: flex; justify-content: space-between;
+    }
+    .clan-report li span:last-child { color: var(--text); }
+
+    .successors-list { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+    .successor-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+      padding: 12px 14px; cursor: pointer; transition: all 0.2s; text-align: left;
+    }
+    .successor-card:hover { border-color: var(--gold-dim); }
+    .successor-card .s-name { font-family: 'Cinzel', serif; font-size: 13px; color: var(--gold); margin-bottom: 4px; }
+    .successor-card .s-desc { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+
+    #btn-new-blood {
+      width: 100%; padding: 13px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-dim); font-family: 'Cinzel', serif;
+      font-size: 11px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s;
+    }
+    #btn-new-blood:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+    /* ─── MODAL ─────────────────────────────────────── */
+    #modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75); z-index: 100;
+      justify-content: center; align-items: flex-end;
+    }
+    #modal-overlay.open { display: flex; }
+    #modal-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px 12px 0 0; padding: 18px; width: 100%;
+      max-width: 480px; max-height: 72vh; overflow-y: auto;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
+    #modal-box h2 {
+      font-family: 'Cinzel', serif; font-size: 14px; color: var(--gold);
+      letter-spacing: 2px; margin-bottom: 13px; padding-bottom: 9px; border-bottom: 1px solid var(--border);
+    }
+    #modal-content { font-size: 13px; line-height: 1.7; color: var(--text-dim); }
+    #modal-close {
+      width: 100%; margin-top: 14px; padding: 10px; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 4px; color: var(--text-dim);
+      font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px; cursor: pointer;
+    }
+
+    /* ─── SHARED MODAL COMPONENTS ───────────────────── */
+    .modal-section-label {
+      font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 2px;
+      color: var(--gold-dim); text-transform: uppercase;
+      margin: 12px 0 7px; border-top: 1px solid var(--border); padding-top: 10px;
+    }
+    .modal-section-label:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+
+    .member-card {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+      padding: 10px 12px; margin-bottom: 7px;
+    }
+    .member-card .mc-top {
+      display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px;
+    }
+    .member-card .mc-name { font-family: 'Cinzel', serif; font-size: 12px; color: var(--gold); }
+    .member-card .mc-realm { font-family: 'Cinzel', serif; font-size: 9px; color: var(--text-dim); }
+    .member-card .mc-stats { font-size: 11px; color: var(--text-dim); }
+    .mc-stat-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 3px; }
+    .mc-stat { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 1px; }
+    .mc-stat.str { color: var(--fire); }
+    .mc-stat.int { color: var(--water); }
+    .mc-stat.cha { color: var(--wood); }
+    .mc-stat.qi  { color: var(--jade); }
+    .mc-stat.age { color: var(--text-dim); }
+
+    .manual-card {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+      padding: 10px 12px; margin-bottom: 6px; transition: border-color 0.2s;
+    }
+    .manual-card.equipped { border-color: var(--gold); background: rgba(201,168,76,0.05); }
+    .manual-card .man-top {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;
+    }
+    .manual-card .man-name { font-family: 'Cinzel', serif; font-size: 12px; color: var(--text); }
+    .man-badge {
+      font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 1px;
+      padding: 2px 6px; border-radius: 2px; border: 1px solid; cursor: pointer;
+    }
+    .man-badge.equip   { color: var(--jade); border-color: var(--jade); }
+    .man-badge.unequip { color: var(--gold); border-color: var(--gold-dim); }
+    .man-badge.buy     { color: var(--text-dim); border-color: var(--border); cursor: pointer; }
+    .man-badge.cant    { color: var(--text-dim); border-color: var(--border); opacity: 0.4; cursor: not-allowed; }
+    .manual-card .man-desc { font-size: 11px; color: var(--text-dim); }
+
+    .sect-card {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+      padding: 12px 14px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;
+    }
+    .sect-card:hover { border-color: var(--purple); }
+    .sect-card .sec-name { font-family: 'Cinzel', serif; font-size: 13px; color: var(--purple); margin-bottom: 4px; }
+    .sect-card .sec-desc { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+    .sec-req { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 1px; color: var(--gold-dim); margin-top: 5px; }
+
+    .occ-card {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+      padding: 10px 12px; margin-bottom: 7px; cursor: pointer; transition: all 0.2s;
+    }
+    .occ-card:hover:not(.locked) { border-color: var(--gold-dim); }
+    .occ-card.locked { opacity: 0.45; cursor: not-allowed; }
+    .occ-card .occ-name { font-family: 'Cinzel', serif; font-size: 12px; color: var(--gold); margin-bottom: 3px; }
+    .occ-card .occ-desc { font-size: 11px; color: var(--text-dim); line-height: 1.4; }
+    .occ-tier { font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 1px; color: var(--text-dim); margin-top: 4px; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ SCREEN: CHARACTER CREATION ══════════════════ -->
+  <div id="screen-create" class="screen active">
+    <div class="create-title">
+      <h1>仙途</h1>
+      <p>Immortal Path — A Wuxia Life Simulator</p>
+    </div>
+    <div class="divider"></div>
+
+    <div>
+      <div class="field-label">Cultivator Name</div>
+      <div class="name-row">
+        <input id="char-name-input" class="text-input" type="text" placeholder="Enter your name..." maxlength="20"/>
+        <button class="btn-sm" onclick="randomizeName()">✦ Random</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="field-label">Clan Name</div>
+      <div class="name-row">
+        <input id="clan-name-input" class="text-input" type="text" placeholder="e.g. Iron Dragon Clan..." maxlength="24"/>
+        <button class="btn-sm" onclick="randomizeClan()">✦ Random</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="field-label">Spiritual Root (Select Elements)</div>
+      <div class="root-grid" id="root-grid"></div>
+    </div>
+
+    <div class="root-info" id="root-info">
+      <p style="font-style:italic; color:var(--text-dim)">Select one or more elements to determine your Spiritual Root affinity.</p>
+    </div>
+
+    <div class="divider"></div>
+    <button id="btn-begin" onclick="beginJourney()">⟨ Begin the Immortal Path ⟩</button>
+  </div>
+
+  <!-- ══ SCREEN: MAIN GAME ════════════════════════════ -->
+  <div id="screen-game" class="screen">
+
+    <div id="stats-header">
+      <div class="stats-top">
+        <span class="char-title" id="hdr-name">—</span>
+        <span class="char-realm" id="hdr-realm">MORTAL</span>
+      </div>
+      <div class="roots-display" id="hdr-roots">
+        <span class="sect-badge" id="hdr-sect" style="display:none">⛩ —</span>
+      </div>
+      <!-- Row 1: core stats -->
+      <div class="stats-row" style="margin-top:6px">
+        <div class="stat-pill"><span class="s-label">Age</span><span class="s-val" id="hdr-age">0</span></div>
+        <div class="stat-pill"><span class="s-label">Qi</span><span class="s-val jade" id="hdr-qi">0</span></div>
+        <div class="stat-pill"><span class="s-label">Gold</span><span class="s-val gold" id="hdr-gold">0</span></div>
+        <div class="stat-pill"><span class="s-label">Job</span><span class="s-val" id="hdr-job" style="font-size:8px;letter-spacing:0">—</span></div>
+      </div>
+      <!-- Row 2: hero stats -->
+      <div class="stats-row five-col" style="margin-top:4px">
+        <div class="stat-pill"><span class="s-label">STR</span><span class="s-val fire" id="hdr-str">0</span></div>
+        <div class="stat-pill"><span class="s-label">INT</span><span class="s-val" style="color:var(--water)" id="hdr-int">0</span></div>
+        <div class="stat-pill"><span class="s-label">CHA</span><span class="s-val" style="color:var(--wood)" id="hdr-cha">0</span></div>
+        <div class="stat-pill"><span class="s-label">Clan</span><span class="s-val purple" id="hdr-members">0</span></div>
+        <div class="stat-pill"><span class="s-label">Manual</span><span class="s-val" id="hdr-manuals" style="font-size:8px">0/2</span></div>
+      </div>
+      <div class="qi-bar-wrap"><div id="qi-bar"></div></div>
+    </div>
+
+    <div id="game-log"></div>
+
+    <div id="action-panel">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="tab-cultivate" onclick="switchTab(this)">
+          <span class="tab-icon">🌀</span>Cultivate
+        </button>
+        <button class="tab-btn" data-tab="tab-work" onclick="switchTab(this)">
+          <span class="tab-icon">⚔</span>Work
+        </button>
+        <button class="tab-btn" data-tab="tab-clan" onclick="switchTab(this)">
+          <span class="tab-icon">🏯</span>Clan
+        </button>
+        <button class="tab-btn" data-tab="tab-sect" onclick="switchTab(this)">
+          <span class="tab-icon">⛩</span>Sect
+        </button>
+      </div>
+
+      <!-- Tab: Cultivate -->
+      <div class="action-tab active" id="tab-cultivate">
+        <div class="action-row">
+          <button class="btn-action primary" onclick="doMeditate()">🧘 Meditate</button>
+          <button class="btn-action" id="btn-breakthrough" onclick="doBreakthrough()">⚡ Breakthrough</button>
+        </div>
+        <div class="action-row">
+          <button class="btn-action" onclick="doPassYear()">📅 Pass Year</button>
+          <button class="btn-action danger" onclick="doTrial()">🔥 Enter Trial</button>
+        </div>
+      </div>
+
+      <!-- Tab: Work -->
+      <div class="action-tab" id="tab-work">
+        <div class="action-row">
+          <button class="btn-action primary" onclick="doWork()" id="btn-work">💼 Work</button>
+          <button class="btn-action" onclick="doSeekOccupation()">🔍 Seek Job</button>
+        </div>
+        <div class="action-row">
+          <button class="btn-action" onclick="doPromoteOccupation()">⬆ Promote</button>
+          <button class="btn-action" onclick="doGamble()">🎲 Gamble</button>
+        </div>
+      </div>
+
+      <!-- Tab: Clan -->
+      <div class="action-tab" id="tab-clan">
+        <div class="action-row">
+          <button class="btn-action" onclick="doViewMembers()">👥 Members</button>
+          <button class="btn-action" onclick="doViewClanRecords()">📋 Records</button>
+        </div>
+        <div class="action-row">
+          <button class="btn-action" onclick="doOpenLibrary()">📚 Library</button>
+          <button class="btn-action" onclick="doHaveChild()">👶 Raise Heir</button>
+        </div>
+        <div class="action-row">
+          <button class="btn-action" onclick="doTravel()">🗺 Travel</button>
+          <button class="btn-action danger" onclick="doRetireAndDie()">☠ Meet Fate</button>
+        </div>
+      </div>
+
+      <!-- Tab: Sect -->
+      <div class="action-tab" id="tab-sect">
+        <div class="action-row">
+          <button class="btn-action purple" onclick="doJoinSect()" id="btn-join-sect">⛩ Join Sect</button>
+          <button class="btn-action purple" onclick="doSectMissions()" id="btn-sect-missions" disabled>📜 Missions</button>
+        </div>
+        <div class="action-row">
+          <button class="btn-action" onclick="doViewSectInfo()" id="btn-sect-info" disabled>🏮 Sect Info</button>
+          <button class="btn-action danger" onclick="doLeaveSect()" id="btn-leave-sect" disabled>🚪 Leave Sect</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: DEATH / SUCCESSION ══════════════════ -->
+  <div id="screen-death" class="screen">
+    <div class="death-title">✦ 魂归 ✦</div>
+    <p style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--text-dim)">THE SOUL RETURNS</p>
+    <p class="death-epitaph" id="death-epitaph">—</p>
+    <div class="clan-report" id="clan-report">
+      <h3>✦ Clan Legacy</h3>
+      <ul id="clan-report-list"></ul>
+    </div>
+    <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;color:var(--gold);width:100%;text-align:left">
+      CHOOSE A SUCCESSOR
+    </div>
+    <div class="successors-list" id="successors-list"></div>
+    <button id="btn-new-blood" onclick="doNewBloodline()">+ Found a New Bloodline</button>
+  </div>
+
+</div><!-- /#app -->
+
+<!-- Modal -->
+<div id="modal-overlay" onclick="closeModal()">
+  <div id="modal-box" onclick="event.stopPropagation()">
+    <h2 id="modal-title">—</h2>
+    <div id="modal-content"></div>
+    <button id="modal-close" onclick="closeModal()">CLOSE</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   ██████  CONSTANTS
+═══════════════════════════════════════════════════════ */
+
+const ELEMENTS = [
+  { name:'Fire',  icon:'🔥', color:'#e05c2a', style:'background:rgba(224,92,42,0.12);color:#e05c2a;border-color:#7a3010' },
+  { name:'Water', icon:'💧', color:'#4a9eca', style:'background:rgba(74,158,202,0.12);color:#4a9eca;border-color:#2a5a7a' },
+  { name:'Wood',  icon:'🌿', color:'#4ea84a', style:'background:rgba(78,168,74,0.12);color:#4ea84a;border-color:#2a5a28' },
+  { name:'Metal', icon:'⚙',  color:'#c0bdb8', style:'background:rgba(192,189,184,0.12);color:#c0bdb8;border-color:#5a5850' },
+  { name:'Earth', icon:'🪨', color:'#c87c2a', style:'background:rgba(200,124,42,0.12);color:#c87c2a;border-color:#7a4a10' },
+];
+
+const ROOT_MULTIPLIERS = [3.0, 2.0, 1.5, 1.0, 0.5]; // index = numElements - 1
+
+const ROOT_INFO_TABLE = [
+  { grade:'Heavenly Pure Root', difficulty:'EASY',   diffTag:'tag-easy',
+    desc:'One element. Heaven\'s chosen. Qi flows pure and fast. Sects will fight over you.' },
+  { grade:'Dual-Veined Root',   difficulty:'EASY',   diffTag:'tag-easy',
+    desc:'Two elements in harmony. Power nearly rivals a Pure Root. Most doors are open.' },
+  { grade:'Tri-Spirit Root',    difficulty:'MEDIUM', diffTag:'tag-medium',
+    desc:'Three elements. The heart of average cultivators. Steady but the peak is distant.' },
+  { grade:'Four-Element Root',  difficulty:'HARD',   diffTag:'tag-hard',
+    desc:'Four conflicting elements. Turbulent meridians. Only the stubborn rise from here.' },
+  { grade:'Chaotic Root',       difficulty:'HARD',   diffTag:'tag-hard',
+    desc:'All five elements war within you. Most call it a curse. A rare few call it destiny.' },
+];
+
+const REALMS = [
+  { name:'Mortal',          qiRequired:0,     qiCap:0,       lifespanBonus:0    },
+  { name:'Qi Condensation', qiRequired:1,     qiCap:100,     lifespanBonus:20   },
+  { name:'Foundation',      qiRequired:101,   qiCap:500,     lifespanBonus:50   },
+  { name:'Core Formation',  qiRequired:501,   qiCap:2000,    lifespanBonus:150  },
+  { name:'Nascent Soul',    qiRequired:2001,  qiCap:10000,   lifespanBonus:500  },
+  { name:'Immortal',        qiRequired:10001, qiCap:Infinity, lifespanBonus:9999},
+];
+
+const REGIONS = [
+  { name:'Lower Azure Realm',  realmCap:1, travelCost:0     },
+  { name:'Middle Azure Realm', realmCap:2, travelCost:500   },
+  { name:'Upper Azure Realm',  realmCap:3, travelCost:2000  },
+  { name:'Immortal Realm',     realmCap:5, travelCost:10000 },
+];
+
+/* ── OCCUPATION TREE ─────────────────────────────────
+   tier: 1 = base, 2 = promotion
+   parentId: the occupation to promote FROM
+   reqManualId: manual required for promotion
+   reqSectId: sect required for promotion
+   reqRealmIdx: minimum realm index for promotion
+*/
+const OCCUPATIONS = [
+  // ── Tier 1 ────────────────────────────────────────
+  { id:'spirit_farmer', tier:1, parentId:null,
+    name:'Spirit Farmer', icon:'🌾',
+    desc:'Cultivate spirit herbs. Steady income, low risk.',
+    goldMin:8,  goldMax:18,  trialRisk:0,
+    reqQi:10, reqRootMax:5,
+    promoteReq:{ realmIdx:2, label:'Foundation Realm' } },
+
+  { id:'merchant', tier:1, parentId:null,
+    name:'Spirit Merchant', icon:'⚖',
+    desc:'Trade spirit stones and relics. Relies on Charisma.',
+    goldMin:12, goldMax:35,  trialRisk:0,
+    reqQi:0, reqRootMax:5,
+    chaBonus:true,  // gold scales with CHA
+    promoteReq:{ realmIdx:3, label:'Core Formation + CHA ≥ 20' } },
+
+  { id:'demon_hunter', tier:1, parentId:null,
+    name:'Demon Hunter', icon:'⚔',
+    desc:'Track and slay demons for bounties. Dangerous and lucrative.',
+    goldMin:40, goldMax:100, trialRisk:0.15,
+    reqQi:50, reqRootMax:2,
+    strBonus:true,  // gold scales with STR
+    promoteReq:{ realmIdx:3, label:'Core Formation + Demon Codex' } },
+
+  { id:'alchemist', tier:1, parentId:null,
+    name:'Alchemist', icon:'⚗',
+    desc:'Refine cultivation pills. Requires Wood or Fire root.',
+    goldMin:30, goldMax:80,  trialRisk:0.05,
+    reqQi:100, reqRootMax:5, reqRootIncludes:['Wood','Fire'],
+    intBonus:true,  // gold scales with INT
+    promoteReq:{ realmIdx:3, label:'Core Formation + Jade Sect' } },
+
+  // ── Tier 2 ────────────────────────────────────────
+  { id:'spirit_herbalist', tier:2, parentId:'spirit_farmer',
+    name:'Spirit Herbalist', icon:'🌺',
+    desc:'Rare herbs, rare rewards. Supplies top-tier alchemists.',
+    goldMin:30,  goldMax:70,  trialRisk:0,
+    reqQi:0, reqRootMax:5,
+    promoteReq:null,
+    upgradeFrom:'spirit_farmer' },
+
+  { id:'black_market', tier:2, parentId:'merchant',
+    name:'Black Market Broker', icon:'🕶',
+    desc:'Trade forbidden artifacts. Enormous risk and reward.',
+    goldMin:80,  goldMax:200, trialRisk:0.10,
+    reqQi:0, reqRootMax:5, reqStat:{ stat:'cha', val:20 },
+    chaBonus:true,
+    promoteReq:null,
+    upgradeFrom:'merchant' },
+
+  { id:'demon_slayer', tier:2, parentId:'demon_hunter',
+    name:'Demon Slayer', icon:'🗡',
+    desc:'Elite demon exterminator. Feared across all realms.',
+    goldMin:150, goldMax:350, trialRisk:0.20,
+    reqQi:0, reqRootMax:2,
+    strBonus:true,
+    reqManualId:'demon_codex',
+    promoteReq:null,
+    upgradeFrom:'demon_hunter' },
+
+  { id:'pill_sage', tier:2, parentId:'alchemist',
+    name:'Pill Sage', icon:'🧪',
+    desc:'Legendary alchemist. Pills that can extend lifespan.',
+    goldMin:120, goldMax:300, trialRisk:0,
+    reqQi:0, reqRootMax:5, reqRootIncludes:['Wood','Fire'],
+    reqSectId:'thousand_jade',
+    intBonus:true,
+    promoteReq:null,
+    upgradeFrom:'alchemist' },
+];
+
+/* ── CULTIVATION MANUALS ─────────────────────────────
+   effect.type values:
+     meditate_qi   – bonus % on Qi from meditation
+     combat_qi     – bonus % on Qi from trials
+     hunter_gold   – bonus % on gold from demon hunting
+     merchant_gold – bonus % on gold from merchant work
+     stat_str/int/cha – flat bonus added to that stat display
+*/
+const MANUALS = [
+  { id:'heavenly_sword', name:'Heavenly Sword Manual', cost:300, icon:'⚔',
+    desc:'+20% Qi gained from Trials and combat.',
+    effect:{ type:'combat_qi', val:0.20 } },
+
+  { id:'iron_meridian', name:'Iron Meridian Scripture', cost:200, icon:'🛡',
+    desc:'+15 STR while equipped. Better trial survival.',
+    effect:{ type:'stat_str', val:15 } },
+
+  { id:'thousand_minds', name:'Thousand Minds Sutra', cost:250, icon:'📖',
+    desc:'+18 INT while equipped. Improves Sect Mission outcomes.',
+    effect:{ type:'stat_int', val:18 } },
+
+  { id:'jade_charisma', name:'Jade Charisma Arts', cost:220, icon:'💎',
+    desc:'+18 CHA while equipped. Merchant gold +15%, cheaper sect dues.',
+    effect:{ type:'stat_cha', val:18 } },
+
+  { id:'myriad_steps', name:'Myriad Steps Codex', cost:350, icon:'🌀',
+    desc:'+30% Qi from Meditation. The core of all cultivation.',
+    effect:{ type:'meditate_qi', val:0.30 } },
+
+  { id:'demon_codex', name:'Demon Codex', cost:400, icon:'👁',
+    desc:'+25% gold from Demon Hunter work. Required to promote to Demon Slayer.',
+    effect:{ type:'hunter_gold', val:0.25 } },
+
+  { id:'merchant_ledger', name:'Hidden Ledger of Wealth', cost:180, icon:'📊',
+    desc:'+25% gold from all Merchant work.',
+    effect:{ type:'merchant_gold', val:0.25 } },
+];
+
+/* ── SECTS ──────────────────────────────────────────
+   Each sect has missions: array of { text, statCheck, successChance, rewards }
+*/
+const SECTS = [
+  {
+    id:'azure_peak',
+    name:'Azure Peak Sect',
+    icon:'🏔',
+    desc:'An ancient sect renowned for pure cultivation. Welcomes all roots. Modest dues, strong fundamentals.',
+    bonus:'Meditation Qi +10% while enrolled.',
+    reqRealmIdx:0, reqCha:0, joinCost:80, dues:15,
+    meditateBonus:0.10,
+    missions:[
+      { text:'Patrol the outer mountains for rogue cultivators.',
+        statKey:'str', threshold:15,
+        win:'You subdued the rogues and earned commendation.', winGold:60, winQi:30,
+        lose:'You were overpowered and sustained minor injuries.',  loseAge:1 },
+      { text:'Transcribe ancient sutras for the sect library.',
+        statKey:'int', threshold:12,
+        win:'Your transcription impressed the elders. A rare technique is gifted.', winGold:0, winQi:0, winTech:true,
+        lose:'Your hand was unsteady. The elder was displeased.',  loseGold:20 },
+      { text:'Represent the sect in a regional cultivation debate.',
+        statKey:'cha', threshold:14,
+        win:'Your eloquence brought prestige to the sect.', winGold:80, winRep:10,
+        lose:'You fumbled your arguments. Reputation suffers.',  loseGold:0 },
+    ],
+  },
+  {
+    id:'crimson_blade',
+    name:'Crimson Blade Order',
+    icon:'🗡',
+    desc:'A militant order of demon slayers. Requires Qi Condensation. Rewards the strong.',
+    bonus:'Trial Qi rewards +15%. Trial survival improved.',
+    reqRealmIdx:1, reqStr:15, joinCost:150, dues:25,
+    trialQiBonus:0.15,
+    missions:[
+      { text:'Hunt a ranked Demon Lord in the Scarlet Wastes.',
+        statKey:'str', threshold:20,
+        win:'The Demon Lord falls. The Order celebrates.', winGold:200, winQi:100,
+        lose:'The demon escaped. You barely survived.',  loseAge:2 },
+      { text:'Investigate a corruption site in the outer realm.',
+        statKey:'int', threshold:16,
+        win:'You identified the corruption source and sealed it.', winGold:100, winQi:50,
+        lose:'The corruption spread. The Order is displeased.',  loseGold:50 },
+      { text:'Recruit talented cultivators for the Order.',
+        statKey:'cha', threshold:18,
+        win:'Three talented cultivators joined. The Order grows stronger.', winGold:80, winMember:true,
+        lose:'No one was convinced. A wasted expedition.',  loseGold:20 },
+    ],
+  },
+  {
+    id:'thousand_jade',
+    name:'Thousand Jade Palace',
+    icon:'💚',
+    desc:'An elite alchemy institution. Requires Foundation realm and INT ≥ 15. High dues, extraordinary rewards.',
+    bonus:'Alchemy gold +20%. Required for Pill Sage promotion.',
+    reqRealmIdx:2, reqInt:15, joinCost:500, dues:60,
+    alchemyBonus:0.20,
+    missions:[
+      { text:'Gather spirit herbs from a dangerous mountain range.',
+        statKey:'int', threshold:20,
+        win:'You return with rare ingredients. Elders reward you generously.', winGold:150, winQi:80,
+        lose:'You were unable to identify the herbs and returned empty-handed.',  loseGold:30 },
+      { text:'Perfect a new pill formula under an elder\'s supervision.',
+        statKey:'int', threshold:25,
+        win:'A breakthrough formula — you are awarded the Sage\'s Seal.', winGold:300, winQi:0, winTech:true,
+        lose:'The formula failed. A month of meditation as penance.',  loseAge:1 },
+      { text:'Negotiate a trade agreement with a foreign sect.',
+        statKey:'cha', threshold:20,
+        win:'The deal was struck at favorable terms.', winGold:200, winRep:15,
+        lose:'The negotiation collapsed.',  loseGold:80 },
+    ],
+  },
+];
+
+/* ── NAME TABLES ─────────────────────────────────── */
+const NAMES_GIVEN  = ['Wei','Zhen','Long','Feng','Yun','Xiao','Ming','Hao','Jun','Liang','Ran','Yi','Tao','Ru','Bai','Chen','Dao'];
+const NAMES_FAMILY = ['Chen','Liu','Zhang','Wang','Li','Zhao','Qian','Sun','Wu','Zheng','Xu','Han','Huang','Jiang','Luo'];
+const CLAN_NAMES   = ['Iron Dragon','Azure Serpent','Lone Peak','Crimson Cloud','White Lotus','Broken Blade','Starfall','Jade Veil','Hollow Storm'];
+
+/* ═══════════════════════════════════════════════════════
+   ██████  GAME STATE
+═══════════════════════════════════════════════════════ */
+
+let GS = {
+  char: null,    // The hero character object
+  clan: {
+    name: '',
+    gold: 50,
+    techniques: [],           // legacy technique names (v1 carry-over)
+    library: [],              // purchased manual IDs
+    ancestors: [],
+    members: [],              // living non-hero clan members
+    generation: 1,
+  },
+  log: [],
+};
+
+/* ── CHARACTER FACTORY ───────────────────────────────
+   Creates a hero or a clan member.
+   `isHero` controls whether equippedManuals / sect / occupation are added.
+*/
+function createChar({ name, elements, isHero = true, isSuccessor = false, inheritedQi = 0 }) {
+  const numElem    = elements.length;
+  const multiplier = ROOT_MULTIPLIERS[numElem - 1];
+
+  // Base stats rolled from 5-20, with elemental bonuses
+  let str = 5 + Math.floor(Math.random() * 16);
+  let int = 5 + Math.floor(Math.random() * 16);
+  let cha = 5 + Math.floor(Math.random() * 16);
+  if (elements.includes('Fire')  || elements.includes('Metal'))  str += 3;
+  if (elements.includes('Water') || elements.includes('Wood'))   int += 3;
+  if (elements.includes('Wood')  || elements.includes('Earth'))  cha += 3;
+
+  const base = {
+    name,
+    elements,
+    multiplier,
+    qi:        isSuccessor ? inheritedQi : 0,
+    realmIdx:  isSuccessor && inheritedQi > 0 ? getRealmIdxForQi(inheritedQi) : 0,
+    age:       16 + Math.floor(Math.random() * 6),
+    lifespan:  60 + Math.floor(Math.random() * 20),
+    stats:     { str, int, cha },
+    alive:     true,
+  };
+
+  if (isHero) {
+    base.regionIdx       = 0;
+    base.occupation      = null;
+    base.equippedManuals = []; // max 2 manual IDs
+    base.sect            = null; // { id, name, rank, joinedAge }
+    base.sectReputation  = 0;
+    base.trialCount      = 0;
+  }
+
+  return base;
+}
+
+/* Create a simplified clan member (non-hero) */
+function createMember({ name, elements }) {
+  return createChar({ name, elements, isHero: false });
+}
+
+function getRealmIdxForQi(qi) {
+  for (let i = REALMS.length - 1; i >= 0; i--) {
+    if (qi >= REALMS[i].qiRequired) return i;
+  }
+  return 0;
+}
+
+/* Effective hero stat = base + manual bonuses */
+function effectiveStat(stat) {
+  const char = GS.char;
+  let val = char.stats[stat];
+  char.equippedManuals.forEach(mId => {
+    const man = MANUALS.find(m => m.id === mId);
+    if (man && man.effect.type === `stat_${stat}`) val += man.effect.val;
+  });
+  return val;
+}
+
+/* Get multiplicative bonus from equipped manuals of a given type */
+function manualBonus(effectType) {
+  let bonus = 0;
+  GS.char.equippedManuals.forEach(mId => {
+    const man = MANUALS.find(m => m.id === mId);
+    if (man && man.effect.type === effectType) bonus += man.effect.val;
+  });
+  return bonus;
+}
+
+function currentRealm()  { return REALMS[GS.char.realmIdx]; }
+function currentRegion() { return REGIONS[GS.char.regionIdx]; }
+
+/* ═══════════════════════════════════════════════════════
+   ██████  CREATION SCREEN
+═══════════════════════════════════════════════════════ */
+
+let selectedElements = [];
+
+function buildRootGrid() {
+  const grid = document.getElementById('root-grid');
+  grid.innerHTML = '';
+  ELEMENTS.forEach((el, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'root-btn';
+    btn.dataset.index = i;
+    btn.innerHTML = `<span class="elem-icon">${el.icon}</span>${el.name}`;
+    btn.onclick = () => toggleElement(i);
+    grid.appendChild(btn);
+  });
+}
+
+function toggleElement(idx) {
+  const elName = ELEMENTS[idx].name;
+  const pos = selectedElements.indexOf(elName);
+  pos >= 0 ? selectedElements.splice(pos, 1) : selectedElements.push(elName);
+  document.querySelectorAll('.root-btn').forEach((btn, i) => {
+    btn.classList.toggle('selected', selectedElements.includes(ELEMENTS[i].name));
+  });
+  updateRootInfo();
+}
+
+function updateRootInfo() {
+  const card = document.getElementById('root-info');
+  const n = selectedElements.length;
+  if (n === 0) {
+    card.innerHTML = '<p style="font-style:italic;color:var(--text-dim)">Select one or more elements to determine your Spiritual Root affinity.</p>';
+    return;
+  }
+  const info = ROOT_INFO_TABLE[n - 1];
+  const mult = ROOT_MULTIPLIERS[n - 1];
+  const icons = selectedElements.map(e => ELEMENTS.find(x => x.name === e).icon).join(' ');
+  card.innerHTML = `
+    <div class="root-name">${icons} ${info.grade}</div>
+    <p>${info.desc}</p>
+    <div style="margin-top:8px;display:flex;gap:6px;align-items:center">
+      <span class="root-tag ${info.diffTag}">${info.difficulty}</span>
+      <span style="font-family:'Cinzel',serif;font-size:10px;color:var(--text-dim)">×${mult} Qi multiplier</span>
+    </div>`;
+}
+
+function randomizeName() {
+  const g = NAMES_GIVEN[Math.floor(Math.random() * NAMES_GIVEN.length)];
+  const f = NAMES_FAMILY[Math.floor(Math.random() * NAMES_FAMILY.length)];
+  document.getElementById('char-name-input').value = `${f} ${g}`;
+}
+
+function randomizeClan() {
+  const c = CLAN_NAMES[Math.floor(Math.random() * CLAN_NAMES.length)];
+  document.getElementById('clan-name-input').value = `${c} Clan`;
+}
+
+function beginJourney() {
+  const name     = document.getElementById('char-name-input').value.trim();
+  const clanName = document.getElementById('clan-name-input').value.trim();
+  if (!name)                     { alert('Your cultivator needs a name!'); return; }
+  if (!selectedElements.length)  { alert('Choose at least one Spiritual Root!'); return; }
+
+  // Reset full state
+  GS.log  = [];
+  GS.clan = {
+    name:       clanName || 'Nameless Clan',
+    gold:       50,
+    techniques: ['Basic Breathing Method'],
+    library:    [],
+    ancestors:  [],
+    members:    [],
+    generation: 1,
+  };
+
+  GS.char = createChar({ name, elements: [...selectedElements] });
+
+  const rootGrade = ROOT_INFO_TABLE[selectedElements.length - 1].grade;
+  addLog(`Your journey begins. You are ${GS.char.name}, bearer of the ${rootGrade}.`, 'event');
+  addLog(`STR ${GS.char.stats.str} · INT ${GS.char.stats.int} · CHA ${GS.char.stats.cha} — the heaven-given aptitudes of your bloodline.`, 'system');
+  addLog(`The ${GS.clan.name} starts with ${GS.clan.gold} gold and one technique: "${GS.clan.techniques[0]}".`, 'system');
+
+  showScreen('screen-game');
+  renderAll();
+}
+
+/* ═══════════════════════════════════════════════════════
+   ██████  CORE GAME ACTIONS
+═══════════════════════════════════════════════════════ */
+
+/* ── MEDITATE ────────────────────────────────────── */
+function doMeditate() {
+  const char   = GS.char;
+  const region = currentRegion();
+  const realm  = currentRealm();
+
+  if (char.realmIdx >= region.realmCap && char.qi >= realm.qiCap) {
+    addLog(`Your Qi strains against the suppression of the ${region.name}. Travel to a higher realm to advance.`, 'danger');
+    return;
+  }
+
+  let base = 5 + Math.floor(Math.random() * 11);
+
+  // Manual bonus (myriad_steps = +30%)
+  let multBonus = manualBonus('meditate_qi');
+  // Sect bonus
+  if (char.sect) {
+    const sect = SECTS.find(s => s.id === char.sect.id);
+    if (sect?.meditateBonus) multBonus += sect.meditateBonus;
+  }
+
+  let gain = Math.floor(base * (char.multiplier + multBonus));
+  char.age += 0.1;
+
+  const cap    = realm.qiCap;
+  const oldQi  = char.qi;
+  char.qi = cap === Infinity ? char.qi + gain : Math.min(char.qi + gain, cap);
+  const actual = Math.round(char.qi - oldQi);
+
+  if (char.qi >= cap && cap !== Infinity) {
+    addLog(`Qi fills its boundary (+${actual}). Only a Breakthrough can carry you further.`, 'event');
+  } else {
+    addLog(pick([
+      `Heaven's essence gathers within your dantian. (+${actual} Qi)`,
+      `Qi flows through your meridians like a mountain stream. (+${actual} Qi)`,
+      `You breathe in the world's raw energy. (+${actual} Qi)`,
+      `The world is your furnace; you are the pill. (+${actual} Qi)`,
+    ]), 'system');
+  }
+
+  ageCheck(); renderAll();
+}
+
+/* ── BREAKTHROUGH ────────────────────────────────── */
+function doBreakthrough() {
+  const char      = GS.char;
+  const realm     = currentRealm();
+  const region    = currentRegion();
+  const nextIdx   = char.realmIdx + 1;
+  const nextRealm = REALMS[nextIdx];
+
+  if (!nextRealm) { addLog('You have reached the pinnacle of existence.', 'event'); return; }
+  if (char.qi < realm.qiCap) {
+    addLog(`Qi not yet full. Reach ${realm.qiCap} Qi first.`, 'danger'); return;
+  }
+  if (char.realmIdx >= region.realmCap) {
+    addLog(`The ${region.name} suppresses higher cultivation. Travel to break through to ${nextRealm.name}.`, 'danger'); return;
+  }
+
+  // Success chance: higher for pure roots; INT gives a small edge
+  const intEdge   = Math.min(0.10, (effectiveStat('int') - 10) * 0.005);
+  const baseChance = Math.min(0.92, 0.50 + 0.09 * (5 - char.elements.length) + intEdge);
+
+  if (Math.random() < baseChance) {
+    char.realmIdx   = nextIdx;
+    char.qi         = nextRealm.qiRequired;
+    char.lifespan  += nextRealm.lifespanBonus;
+    addLog(`⚡ BREAKTHROUGH! You enter ${nextRealm.name}! Lifespan extends by ${nextRealm.lifespanBonus} years.`, 'success');
+    if (nextIdx === 3) addLog('A golden core crystallizes within your dantian. You are no longer ordinary.', 'event');
+    if (nextIdx === 4) addLog('Your Nascent Soul emerges — you transcend the mortal coil. Legends will speak your name.', 'event');
+    if (nextIdx === 5) addLog('✦ Immortality achieved. The clan will remember this day forever.', 'success');
+  } else {
+    char.qi   = Math.floor(char.qi * 0.70);
+    char.age += 1 + Math.floor(Math.random() * 2);
+    addLog(`Breakthrough failed. Qi backlash tears through your meridians. Qi drops to ${Math.floor(char.qi)} and you age prematurely.`, 'danger');
+  }
+
+  ageCheck(); renderAll();
+}
+
+/* ── PASS YEAR ───────────────────────────────────── */
+/* Central time-passage function. Advances hero AND all clan members one year. */
+function doPassYear() {
+  const char = GS.char;
+  char.age += 1;
+
+  // ── Process every clan member ──────────────────
+  GS.clan.members = GS.clan.members.filter(m => {
+    m.age += 1;
+    // Passive Qi gain based on root (smaller than hero's active meditation)
+    const passiveGain = Math.floor(2 * ROOT_MULTIPLIERS[m.elements.length - 1]);
+    const mRealm = REALMS[m.realmIdx];
+    m.qi = mRealm.qiCap === Infinity
+      ? m.qi + passiveGain
+      : Math.min(m.qi + passiveGain, mRealm.qiCap);
+
+    // Auto-breakthrough: 25% chance when Qi is full, caps at Foundation passively
+    if (m.qi >= mRealm.qiCap && mRealm.qiCap > 0 && m.realmIdx < 2) {
+      if (Math.random() < 0.25) {
+        m.realmIdx++;
+        addLog(`Clan member ${m.name} broke through to ${REALMS[m.realmIdx].name}!`, 'success');
+      }
+    }
+
+    // Death of member
+    if (m.age >= m.lifespan) {
+      addLog(`${m.name} (${Math.floor(m.age)}) has passed away. The clan mourns.`, 'danger');
+      return false;
+    }
+    return true;
+  });
+
+  // ── Sect annual dues ───────────────────────────
+  if (char.sect) {
+    const sect = SECTS.find(s => s.id === char.sect.id);
+    // CHA reduces dues (Jade Charisma manual applied)
+    const chaDiscount = effectiveStat('cha') >= 20 ? 0.85 : 1.0;
+    const dueCost = Math.floor(sect.dues * chaDiscount);
+    if (GS.clan.gold >= dueCost) {
+      GS.clan.gold -= dueCost;
+      addLog(`Paid ${dueCost} gold in annual dues to ${sect.name}.`, 'system');
+    } else {
+      addLog(`Cannot afford ${sect.name}'s dues. You have been expelled!`, 'danger');
+      char.sect = null;
+      updateSectButtons();
+    }
+  }
+
+  // ── Random year events ─────────────────────────
+  if (Math.random() < 0.22) fireYearEvent();
+
+  // ── Small chance to spawn child ────────────────
+  if (char.age >= 20 && char.age <= 65 && Math.random() < 0.10) spawnMember();
+
+  addLog(pick([
+    'Another year passes. The world continues its endless rotation.',
+    'Seasons change. You sit in contemplation, watching clouds drift over the peaks.',
+    'A wandering elder passes through; you share tea and trade wisdom.',
+    'The clan holds a small ceremony. The next generation grows taller.',
+  ]), 'system');
+
+  ageCheck(); renderAll();
+}
+
+function fireYearEvent() {
+  const char = GS.char;
+  const events = [
+    () => { const g = 20+Math.floor(Math.random()*50); GS.clan.gold+=g;
+            addLog(`A trader repays an old debt to the ${GS.clan.name}. The clan gains ${g} gold.`, 'event'); },
+    () => { const q = Math.floor(10 * char.multiplier);
+            char.qi = Math.min(char.qi + q, currentRealm().qiCap || char.qi+q);
+            addLog(`A rare alignment of heavenly energies floods your meridians with ${q} Qi.`, 'event'); },
+    () => { const dmg = Math.floor(GS.clan.gold * 0.08 + 5); GS.clan.gold -= dmg;
+            addLog(`Bandits raided the clan's outer warehouses. ${dmg} gold lost.`, 'danger'); },
+    () => { char.age += 1;
+            addLog('A mysterious illness strikes you. You age a year fighting it off.', 'danger'); },
+    () => { if (GS.clan.members.length > 0) {
+              const m = pick(GS.clan.members);
+              const bonus = Math.floor(5 * ROOT_MULTIPLIERS[m.elements.length-1]);
+              m.qi = Math.min(m.qi + bonus, REALMS[m.realmIdx].qiCap || m.qi + bonus);
+              addLog(`${m.name} experienced a fortuitous encounter and gained ${bonus} Qi.`, 'success');
+            }},
+    () => { addLog('A famous wandering swordsman duels you for sport. You gain insight from the experience (+2 STR).', 'event');
+            char.stats.str += 2; },
+    () => { addLog('You discover ancient writings in the clan vault. Hidden wisdom surfaces (+2 INT).', 'event');
+            char.stats.int += 2; },
+    () => { addLog('Local families seek the clan\'s blessing. Your reputation spreads (+2 CHA).', 'event');
+            char.stats.cha += 2; },
+  ];
+  pick(events)();
+}
+
+/* ── TRIAL ───────────────────────────────────────── */
+function doTrial() {
+  const char = GS.char;
+  if (char.realmIdx === 0) { addLog('A mortal entering trials is suicide.', 'danger'); return; }
+
+  char.trialCount++;
+  const strEdge = (effectiveStat('str') - 10) * 0.008;
+  // Sect combat bonus
+  let sectBonus = 0;
+  if (char.sect) {
+    const sect = SECTS.find(s => s.id === char.sect.id);
+    if (sect?.trialQiBonus) sectBonus = sect.trialQiBonus;
+  }
+
+  const successChance = Math.min(0.85, 0.40 + char.realmIdx * 0.07 + strEdge);
+
+  if (Math.random() < successChance) {
+    let qiGain  = Math.floor(10 * char.realmIdx * char.multiplier * (1 + manualBonus('combat_qi') + sectBonus));
+    let goldGain = (20 * char.realmIdx) + Math.floor(Math.random() * 50);
+    char.qi = Math.min(char.qi + qiGain, currentRealm().qiCap === Infinity ? char.qi+qiGain : currentRealm().qiCap);
+    GS.clan.gold += goldGain;
+    addLog(`Trial victorious! +${qiGain} Qi, +${goldGain} gold.`, 'success');
+  } else {
+    const qiLoss = Math.floor(char.qi * 0.10);
+    char.qi  = Math.max(0, char.qi - qiLoss);
+    char.age += 1;
+    addLog(`Trial failed. −${qiLoss} Qi, aged from wounds.`, 'danger');
+    if (Math.random() < 0.04) { addLog('Wounds proved fatal.', 'danger'); char.alive = false; triggerDeath('fallen in battle'); return; }
+  }
+
+  ageCheck(); renderAll();
+}
+
+/* ── WORK ────────────────────────────────────────── */
+function doWork() {
+  const char = GS.char;
+  if (!char.occupation) { addLog('No occupation. Seek work first.', 'danger'); return; }
+
+  const occ = OCCUPATIONS.find(o => o.id === char.occupation);
+  if (!occ) return;
+
+  // Injury risk
+  if (occ.trialRisk > 0 && Math.random() < occ.trialRisk) {
+    char.age += 1 + Math.floor(Math.random() * 2);
+    addLog(`${occ.icon} Work as ${occ.name} went wrong — injury! Lost 1-2 years of vitality.`, 'danger');
+    ageCheck(); renderAll(); return;
+  }
+
+  // Base gold
+  let gold = occ.goldMin + Math.floor(Math.random() * (occ.goldMax - occ.goldMin + 1));
+
+  // Stat bonuses
+  if (occ.strBonus)  gold = Math.floor(gold * (1 + (effectiveStat('str') - 10) * 0.01));
+  if (occ.intBonus)  gold = Math.floor(gold * (1 + (effectiveStat('int') - 10) * 0.01));
+  if (occ.chaBonus)  gold = Math.floor(gold * (1 + (effectiveStat('cha') - 10) * 0.01));
+
+  // Manual bonuses
+  if (occ.id === 'demon_hunter' || occ.id === 'demon_slayer') gold = Math.floor(gold * (1 + manualBonus('hunter_gold')));
+  if (occ.id === 'merchant'     || occ.id === 'black_market') gold = Math.floor(gold * (1 + manualBonus('merchant_gold')));
+  // Sect alchemy bonus
+  if ((occ.id === 'alchemist' || occ.id === 'pill_sage') && char.sect) {
+    const sect = SECTS.find(s => s.id === char.sect.id);
+    if (sect?.alchemyBonus) gold = Math.floor(gold * (1 + sect.alchemyBonus));
+  }
+
+  GS.clan.gold += gold;
+  char.age += 0.2;
+
+  addLog(`${occ.icon} Worked as ${occ.name} — earned ${gold} gold for the clan.`, 'event');
+  ageCheck(); renderAll();
+}
+
+/* ── SEEK OCCUPATION ─────────────────────────────── */
+function doSeekOccupation() {
+  const char   = GS.char;
+  const numElem = char.elements.length;
+
+  // Only show Tier 1 occupations (base jobs only)
+  const tier1 = OCCUPATIONS.filter(occ => {
+    if (occ.tier !== 1) return false;
+    if (char.qi < occ.reqQi) return false;
+    if (numElem > occ.reqRootMax) return false;
+    if (occ.reqRootIncludes && !occ.reqRootIncludes.some(e => char.elements.includes(e))) return false;
+    return true;
+  });
+
+  if (!tier1.length) { addLog('No tier-1 occupation suits your current cultivation.', 'danger'); return; }
+
+  let html = '<p class="modal-section-label">Available Occupations</p>';
+  tier1.forEach(occ => {
+    const promoText = occ.promoteReq ? `<div class="occ-tier">Promotes to higher tier at: ${occ.promoteReq.label}</div>` : '';
+    html += `<div class="occ-card" onclick="selectOccupation('${occ.id}')">
+      <div class="occ-name">${occ.icon} ${occ.name}</div>
+      <div class="occ-desc">${occ.desc}<br>
+        <span style="color:var(--gold);font-family:'Cinzel',serif;font-size:10px">${occ.goldMin}–${occ.goldMax}+ gold/session</span>
+      </div>
+      ${promoText}
+    </div>`;
+  });
+  openModal('Seek Your Path', html);
+}
+
+function selectOccupation(id) {
+  GS.char.occupation = id;
+  const occ = OCCUPATIONS.find(o => o.id === id);
+  addLog(`You take up the path of the ${occ.name}. ${occ.desc}`, 'event');
+  closeModal(); renderAll();
+}
+
+/* ── PROMOTE OCCUPATION ──────────────────────────── */
+function doPromoteOccupation() {
+  const char = GS.char;
+  if (!char.occupation) { addLog('You have no occupation to promote from.', 'danger'); return; }
+
+  const current = OCCUPATIONS.find(o => o.id === char.occupation);
+  if (!current?.promoteReq) { addLog('This occupation has no promotion path, or you are already at the pinnacle.', 'event'); return; }
+
+  // Find the tier-2 job that promotes from this one
+  const next = OCCUPATIONS.find(o => o.parentId === char.occupation);
+  if (!next) { addLog('No promotion path found for your occupation.', 'danger'); return; }
+
+  const errors = [];
+
+  // Realm check
+  if (char.realmIdx < next.parentId && current.promoteReq?.realmIdx) {
+    if (char.realmIdx < current.promoteReq.realmIdx) {
+      errors.push(`• Requires ${REALMS[current.promoteReq.realmIdx].name} realm`);
+    }
+  }
+  // Generic realm requirement from promoteReq
+  if (current.promoteReq?.realmIdx && char.realmIdx < current.promoteReq.realmIdx) {
+    if (!errors.length) errors.push(`• Requires ${REALMS[current.promoteReq.realmIdx].name} realm`);
+  }
+
+  // Stat check
+  if (next.reqStat) {
+    if (effectiveStat(next.reqStat.stat) < next.reqStat.val) {
+      errors.push(`• Requires ${next.reqStat.stat.toUpperCase()} ≥ ${next.reqStat.val} (yours: ${effectiveStat(next.reqStat.stat)})`);
+    }
+  }
+
+  // Manual check
+  if (next.reqManualId) {
+    if (!char.equippedManuals.includes(next.reqManualId)) {
+      const man = MANUALS.find(m => m.id === next.reqManualId);
+      errors.push(`• Must have "${man.name}" equipped`);
+    }
+  }
+
+  // Sect check
+  if (next.reqSectId) {
+    if (!char.sect || char.sect.id !== next.reqSectId) {
+      const sect = SECTS.find(s => s.id === next.reqSectId);
+      errors.push(`• Must be a member of ${sect.name}`);
+    }
+  }
+
+  // Root check
+  if (next.reqRootIncludes && !next.reqRootIncludes.some(e => char.elements.includes(e))) {
+    errors.push(`• Requires ${next.reqRootIncludes.join(' or ')} Spiritual Root`);
+  }
+
+  if (errors.length) {
+    openModal(`Promotion: ${next.name}`, `
+      <p style="margin-bottom:12px">To promote to <strong style="color:var(--gold)">${next.name}</strong>, you need:</p>
+      <p style="color:var(--crimson);line-height:2">${errors.join('<br>')}</p>`);
+    return;
+  }
+
+  // Promotion success
+  char.occupation = next.id;
+  addLog(`⬆ PROMOTED to ${next.icon} ${next.name}! ${next.desc}`, 'success');
+  renderAll();
+}
+
+/* ── GAMBLE ──────────────────────────────────────── */
+function doGamble() {
+  const stake = Math.max(10, Math.min(80, Math.floor(GS.clan.gold * 0.15)));
+  if (GS.clan.gold < stake) { addLog('Insufficient gold to gamble.', 'danger'); return; }
+  // CHA improves odds slightly
+  const chaEdge = (effectiveStat('cha') - 10) * 0.005;
+  GS.clan.gold -= stake;
+  if (Math.random() < 0.44 + chaEdge) {
+    const win = Math.floor(stake * (1.5 + Math.random() * 1.5));
+    GS.clan.gold += win;
+    addLog(`Wagered ${stake} gold at the spirit market — won ${win} gold!`, 'success');
+  } else {
+    addLog(`Lost ${stake} gold at the gambling dens.`, 'danger');
+  }
+  renderAll();
+}
+
+/* ── CLAN MEMBERS ────────────────────────────────── */
+function doViewMembers() {
+  const members = GS.clan.members;
+  let html = '';
+
+  if (!members.length) {
+    html = '<p style="color:var(--text-dim);font-style:italic">No living clan members yet. Raise heirs or pass years for children to be born.</p>';
+  } else {
+    html += `<p class="modal-section-label">Living Members (${members.length})</p>`;
+    members.forEach(m => {
+      const elIcons = m.elements.map(e => ELEMENTS.find(x=>x.name===e).icon).join('');
+      html += `<div class="member-card">
+        <div class="mc-top">
+          <span class="mc-name">${elIcons} ${m.name}</span>
+          <span class="mc-realm">${REALMS[m.realmIdx].name.toUpperCase()}</span>
+        </div>
+        <div class="mc-stat-row">
+          <span class="mc-stat age">Age ${Math.floor(m.age)}/${Math.floor(m.lifespan)}</span>
+          <span class="mc-stat qi">Qi ${Math.floor(m.qi)}</span>
+          <span class="mc-stat str">STR ${m.stats.str}</span>
+          <span class="mc-stat int">INT ${m.stats.int}</span>
+          <span class="mc-stat cha">CHA ${m.stats.cha}</span>
+        </div>
+      </div>`;
+    });
+  }
+  openModal(`${GS.clan.name} — Members`, html);
+}
+
+function doViewClanRecords() {
+  const c = GS.clan;
+  const techList = c.techniques.map(t => `<li style="padding:4px 0;border-bottom:1px solid var(--border)">📜 ${t}</li>`).join('');
+  const ancList  = c.ancestors.length
+    ? c.ancestors.map(a => `<li style="padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">✦ ${a}</li>`).join('')
+    : '<li style="color:var(--text-dim)">No ancestors yet.</li>';
+  const html = `
+    <div class="stats-row" style="margin-bottom:14px">
+      <div class="stat-pill"><span class="s-label">Generation</span><span class="s-val">${c.generation}</span></div>
+      <div class="stat-pill"><span class="s-label">Treasury</span><span class="s-val gold">${c.gold}g</span></div>
+      <div class="stat-pill"><span class="s-label">Members</span><span class="s-val purple">${c.members.length}</span></div>
+      <div class="stat-pill"><span class="s-label">Manuals</span><span class="s-val">${c.library.length}</span></div>
+    </div>
+    <p class="modal-section-label">Techniques</p>
+    <ul style="list-style:none">${techList}</ul>
+    <p class="modal-section-label">Ancestors</p>
+    <ul style="list-style:none">${ancList}</ul>`;
+  openModal(`${c.name} — Records`, html);
+}
+
+function doHaveChild() {
+  const char = GS.char;
+  if (char.age < 20)  { addLog('Too young to raise an heir.', 'danger'); return; }
+  if (char.age > 70)  { addLog('Too old to raise more heirs.', 'danger'); return; }
+  if (GS.clan.gold < 40) { addLog('Need 40 gold to raise an heir.', 'danger'); return; }
+  if (GS.clan.members.length >= 8) { addLog('The clan already has eight members — no space for more.', 'danger'); return; }
+  GS.clan.gold -= 40;
+  spawnMember(true);
+  renderAll();
+}
+
+function spawnMember(announce = false) {
+  const g = NAMES_GIVEN[Math.floor(Math.random() * NAMES_GIVEN.length)];
+  const f = NAMES_FAMILY[Math.floor(Math.random() * NAMES_FAMILY.length)];
+  const name = `${f} ${g}`;
+  const numElem = 1 + Math.floor(Math.random() * 3); // 1-3 elements for next gen
+  const elements = shuffle([...ELEMENTS]).slice(0, numElem).map(e => e.name);
+  const member = createMember({ name, elements });
+  GS.clan.members.push(member);
+  const icons = elements.map(e => ELEMENTS.find(x=>x.name===e).icon).join('');
+  addLog(`${icons} ${name} joins the ${GS.clan.name} — ${ROOT_INFO_TABLE[numElem-1].grade}!`, announce ? 'success' : 'event');
+}
+
+/* ── TRAVEL ──────────────────────────────────────── */
+function doTravel() {
+  const travelable = REGIONS.filter((r, i) => i !== GS.char.regionIdx);
+  if (!travelable.length) { addLog('No regions available to travel to.', 'system'); return; }
+
+  let html = '<p class="modal-section-label">Available Regions</p>';
+  REGIONS.forEach((reg, i) => {
+    if (i === GS.char.regionIdx) return;
+    const canAfford = GS.clan.gold >= reg.travelCost;
+    const capName   = REALMS[reg.realmCap].name;
+    html += `<div class="occ-card ${canAfford ? '' : 'locked'}" onclick="${canAfford ? `confirmTravel(${i})` : 'void 0'}">
+      <div class="occ-name">🗺 ${reg.name}</div>
+      <div class="occ-desc">Realm cap: <strong style="color:var(--gold)">${capName}</strong></div>
+      <div class="occ-tier">Cost: ${reg.travelCost} gold ${!canAfford ? '· <span style="color:var(--crimson)">Insufficient funds</span>' : ''}</div>
+    </div>`;
+  });
+  openModal('Choose Destination', html);
+}
+
+function confirmTravel(regionIdx) {
+  const reg  = REGIONS[regionIdx];
+  GS.clan.gold     -= reg.travelCost;
+  GS.char.regionIdx = regionIdx;
+  GS.char.age      += 1;
+  addLog(`You journey to the ${reg.name}. Cultivators here reach the ${REALMS[reg.realmCap].name} realm. New horizons open.`, 'success');
+  closeModal(); ageCheck(); renderAll();
+}
+
+/* ── LIBRARY — MANUALS ───────────────────────────── */
+function doOpenLibrary() {
+  renderLibraryModal();
+  openModal('Clan Library', ''); // content set by renderLibraryModal
+}
+
+function renderLibraryModal() {
+  const char    = GS.char;
+  const library = GS.clan.library;
+  let html      = '';
+
+  // Equipped manuals banner
+  const equipped = char.equippedManuals;
+  html += `<p class="modal-section-label">Equipped (${equipped.length}/2)</p>`;
+  if (!equipped.length) {
+    html += '<p style="color:var(--text-dim);font-size:12px;margin-bottom:8px;font-style:italic">No manuals equipped.</p>';
+  } else {
+    equipped.forEach(mId => {
+      const man = MANUALS.find(m => m.id === mId);
+      html += `<div class="manual-card equipped">
+        <div class="man-top">
+          <span class="man-name">${man.icon} ${man.name}</span>
+          <span class="man-badge unequip" onclick="unequipManual('${mId}')">UNEQUIP</span>
+        </div>
+        <div class="man-desc">${man.desc}</div>
+      </div>`;
+    });
+  }
+
+  // Library (owned, not equipped)
+  const ownedNotEquipped = library.filter(id => !equipped.includes(id));
+  if (ownedNotEquipped.length) {
+    html += '<p class="modal-section-label">In Library</p>';
+    ownedNotEquipped.forEach(mId => {
+      const man     = MANUALS.find(m => m.id === mId);
+      const canEquip = equipped.length < 2;
+      html += `<div class="manual-card">
+        <div class="man-top">
+          <span class="man-name">${man.icon} ${man.name}</span>
+          <span class="man-badge ${canEquip ? 'equip' : 'cant'}" onclick="${canEquip ? `equipManual('${mId}')` : 'void 0'}">${canEquip ? 'EQUIP' : 'FULL'}</span>
+        </div>
+        <div class="man-desc">${man.desc}</div>
+      </div>`;
+    });
+  }
+
+  // Shop — manuals not yet owned
+  const unowned = MANUALS.filter(m => !library.includes(m.id));
+  if (unowned.length) {
+    html += '<p class="modal-section-label">Purchase</p>';
+    unowned.forEach(man => {
+      const canBuy = GS.clan.gold >= man.cost;
+      html += `<div class="manual-card">
+        <div class="man-top">
+          <span class="man-name" style="color:var(--text-dim)">${man.icon} ${man.name}</span>
+          <span class="man-badge ${canBuy ? 'buy' : 'cant'}" onclick="${canBuy ? `buyManual('${man.id}')` : 'void 0'}">${man.cost}g</span>
+        </div>
+        <div class="man-desc">${man.desc} ${!canBuy ? '<em style="color:var(--crimson)">(insufficient gold)</em>' : ''}</div>
+      </div>`;
+    });
+  }
+
+  document.getElementById('modal-content').innerHTML = html;
+}
+
+function buyManual(id) {
+  const man = MANUALS.find(m => m.id === id);
+  if (GS.clan.gold < man.cost) return;
+  GS.clan.gold -= man.cost;
+  GS.clan.library.push(id);
+  addLog(`Purchased "${man.name}" for the clan library. ${man.desc}`, 'success');
+  renderLibraryModal(); renderAll();
+}
+
+function equipManual(id) {
+  const char = GS.char;
+  if (char.equippedManuals.length >= 2) { addLog('Already have 2 manuals equipped. Unequip one first.', 'danger'); return; }
+  if (!char.equippedManuals.includes(id)) {
+    char.equippedManuals.push(id);
+    const man = MANUALS.find(m => m.id === id);
+    addLog(`Equipped "${man.name}". Its secrets flow through your meridians.`, 'success');
+  }
+  renderLibraryModal(); renderAll();
+}
+
+function unequipManual(id) {
+  const char = GS.char;
+  char.equippedManuals = char.equippedManuals.filter(m => m !== id);
+  const man = MANUALS.find(m => m.id === id);
+  addLog(`Unequipped "${man.name}".`, 'system');
+  renderLibraryModal(); renderAll();
+}
+
+/* ── SECT SYSTEM ─────────────────────────────────── */
+function doJoinSect() {
+  const char = GS.char;
+  if (char.sect) { addLog('You are already a sect member. Leave your current sect first.', 'danger'); return; }
+
+  let html = '<p class="modal-section-label">Available Sects</p>';
+  SECTS.forEach(sect => {
+    const reqs = [];
+    if (sect.reqRealmIdx > 0) reqs.push(`${REALMS[sect.reqRealmIdx].name} realm`);
+    if (sect.reqStr) reqs.push(`STR ≥ ${sect.reqStr} (yours: ${effectiveStat('str')})`);
+    if (sect.reqInt) reqs.push(`INT ≥ ${sect.reqInt} (yours: ${effectiveStat('int')})`);
+    if (sect.reqCha) reqs.push(`CHA ≥ ${sect.reqCha}`);
+
+    const eligible = (char.realmIdx >= sect.reqRealmIdx)
+      && (!sect.reqStr || effectiveStat('str') >= sect.reqStr)
+      && (!sect.reqInt || effectiveStat('int') >= sect.reqInt)
+      && (GS.clan.gold >= sect.joinCost);
+
+    html += `<div class="sect-card ${eligible ? '' : 'locked'}" onclick="${eligible ? `joinSect('${sect.id}')` : 'void 0'}">
+      <div class="sec-name">${sect.icon} ${sect.name}</div>
+      <div class="sec-desc">${sect.desc}</div>
+      <div class="sec-desc" style="margin-top:5px;color:var(--jade)">✦ ${sect.bonus}</div>
+      <div class="sec-req">Join: ${sect.joinCost}g · Annual dues: ${sect.dues}g${reqs.length ? ' · ' + reqs.join(', ') : ''}
+        ${!eligible ? ' · <span style="color:var(--crimson)">Requirements not met</span>' : ''}
+      </div>
+    </div>`;
+  });
+  openModal('Join a Sect', html);
+}
+
+function joinSect(sectId) {
+  const sect = SECTS.find(s => s.id === sectId);
+  if (GS.clan.gold < sect.joinCost) return;
+  GS.clan.gold -= sect.joinCost;
+  GS.char.sect = { id: sect.id, name: sect.name, rank: 1, joinedAge: Math.floor(GS.char.age) };
+  addLog(`⛩ You join the ${sect.name}. ${sect.bonus}`, 'sect');
+  closeModal(); updateSectButtons(); renderAll();
+}
+
+function doSectMissions() {
+  const char = GS.char;
+  if (!char.sect) { addLog('You are not in a sect.', 'danger'); return; }
+
+  const sect    = SECTS.find(s => s.id === char.sect.id);
+  const mission = pick(sect.missions);
+
+  addLog(`📜 Sect Mission: "${mission.text}"`, 'sect');
+
+  const statVal   = effectiveStat(mission.statKey);
+  // INT bonus from thousand_minds improves outcome check
+  const intBonus  = mission.statKey !== 'int' ? Math.floor(effectiveStat('int') / 20) : 0;
+  const threshold = mission.threshold - intBonus;
+
+  char.age += 0.5; // missions take time
+
+  if (statVal >= threshold || Math.random() < 0.30) {
+    // SUCCESS
+    if (mission.winGold)  { GS.clan.gold += mission.winGold; addLog(`Mission success! +${mission.winGold} gold.`, 'success'); }
+    if (mission.winQi)    { char.qi = Math.min(char.qi + mission.winQi, currentRealm().qiCap || char.qi+mission.winQi); addLog(`+${mission.winQi} Qi from mission reward.`, 'success'); }
+    if (mission.winRep)   { char.sectReputation += mission.winRep; addLog(`Sect reputation +${mission.winRep}.`, 'success'); }
+    if (mission.winTech)  { addLog(pick(sect.missions).text ? '' : ''); grantSectTechnique(sect); }
+    if (mission.winMember){ spawnMember(true); }
+    addLog(mission.win, 'sect');
+  } else {
+    // FAILURE
+    if (mission.loseGold) { GS.clan.gold = Math.max(0, GS.clan.gold - mission.loseGold); addLog(`−${mission.loseGold} gold.`, 'danger'); }
+    if (mission.loseAge)  { char.age += mission.loseAge; }
+    addLog(mission.lose, 'danger');
+  }
+
+  // Rank-up check
+  if (char.sectReputation >= 50 * char.sect.rank) {
+    char.sect.rank++;
+    addLog(`⛩ You have been promoted to Rank ${char.sect.rank} in the ${sect.name}!`, 'success');
+    addLog(`New rank perks: sect resource allocation +${char.sect.rank * 10}% efficiency.`, 'sect');
+  }
+
+  ageCheck(); renderAll();
+}
+
+function grantSectTechnique(sect) {
+  const sectTechs = {
+    azure_peak:   ['Heavenly Void Sutra', 'Mountain Echo Method'],
+    crimson_blade:['Blood Furnace Art', 'Demon-Sealing Slash'],
+    thousand_jade:['Jade Pill Codex', 'Five-Colour Flame Method'],
+  };
+  const pool    = sectTechs[sect.id] || [];
+  const unowned = pool.filter(t => !GS.clan.techniques.includes(t));
+  if (unowned.length) {
+    const tech = unowned[0];
+    GS.clan.techniques.push(tech);
+    addLog(`The sect grants you the technique: "${tech}"!`, 'success');
+  }
+}
+
+function doViewSectInfo() {
+  const char = GS.char;
+  if (!char.sect) return;
+  const sect = SECTS.find(s => s.id === char.sect.id);
+  const html = `
+    <div style="text-align:center;padding:10px 0">
+      <div style="font-size:32px;margin-bottom:8px">${sect.icon}</div>
+      <div style="font-family:'Cinzel',serif;font-size:16px;color:var(--purple);margin-bottom:4px">${sect.name}</div>
+      <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--text-dim)">RANK ${char.sect.rank} · JOINED AGE ${char.sect.joinedAge}</div>
+    </div>
+    <div class="stats-row" style="margin:14px 0">
+      <div class="stat-pill"><span class="s-label">Rank</span><span class="s-val purple">${char.sect.rank}</span></div>
+      <div class="stat-pill"><span class="s-label">Rep</span><span class="s-val">${char.sectReputation}</span></div>
+      <div class="stat-pill"><span class="s-label">Next</span><span class="s-val" style="font-size:9px">${50 * char.sect.rank} Rep</span></div>
+      <div class="stat-pill"><span class="s-label">Dues/yr</span><span class="s-val gold">${sect.dues}g</span></div>
+    </div>
+    <p class="modal-section-label">Sect Bonus</p>
+    <p style="color:var(--jade);font-size:13px;margin-bottom:8px">✦ ${sect.bonus}</p>
+    <p class="modal-section-label">Description</p>
+    <p style="font-size:13px">${sect.desc}</p>`;
+  openModal(sect.name, html);
+}
+
+function doLeaveSect() {
+  const char = GS.char;
+  if (!char.sect) return;
+  if (!confirm(`Leave ${char.sect.name}? You will lose all rank and sect benefits.`)) return;
+  addLog(`You leave the ${char.sect.name}. Your rank and benefits are forfeit.`, 'danger');
+  char.sect           = null;
+  char.sectReputation = 0;
+  updateSectButtons(); renderAll();
+}
+
+function updateSectButtons() {
+  const inSect = !!GS.char?.sect;
+  document.getElementById('btn-join-sect').disabled    = inSect;
+  document.getElementById('btn-sect-missions').disabled = !inSect;
+  document.getElementById('btn-sect-info').disabled     = !inSect;
+  document.getElementById('btn-leave-sect').disabled    = !inSect;
+}
+
+/* ── DEATH & SUCCESSION ──────────────────────────── */
+function ageCheck() {
+  const char = GS.char;
+  if (!char.alive) return;
+  if (char.age >= char.lifespan) {
+    addLog(`At age ${Math.floor(char.age)}, your body fails. The great river of fate claims you.`, 'danger');
+    triggerDeath('passed away peacefully');
+  }
+}
+
+function triggerDeath(cause) {
+  const char = GS.char;
+  char.alive = false;
+  GS.clan.ancestors.push(`${char.name}, ${REALMS[char.realmIdx].name} (${Math.floor(char.age)} yrs), ${cause}.`);
+  showScreen('screen-death');
+  renderDeathScreen(cause);
+}
+
+function doRetireAndDie() {
+  if (!confirm('Your cultivator will meet their end. Are you certain?')) return;
+  triggerDeath('retired from the world');
+}
+
+function renderDeathScreen(cause) {
+  const char = GS.char;
+
+  document.getElementById('death-epitaph').innerHTML =
+    `<strong>${char.name}</strong> of the ${GS.clan.name}<br>
+     reached the realm of <strong>${REALMS[char.realmIdx].name}</strong><br>
+     lived to age <strong>${Math.floor(char.age)}</strong><br>
+     and <em>${cause}</em>.`;
+
+  document.getElementById('clan-report-list').innerHTML = `
+    <li><span>Generation</span><span>${GS.clan.generation}</span></li>
+    <li><span>Treasury</span><span>${GS.clan.gold} gold</span></li>
+    <li><span>Living Members</span><span>${GS.clan.members.length}</span></li>
+    <li><span>Manuals in Library</span><span>${GS.clan.library.length}</span></li>
+    <li><span>Ancestors</span><span>${GS.clan.ancestors.length}</span></li>
+  `;
+
+  const list = document.getElementById('successors-list');
+  list.innerHTML = '';
+
+  // Successors = clan members (can play as any of them)
+  const successors = GS.clan.members.filter(m => m.alive);
+
+  if (!successors.length) {
+    list.innerHTML = '<p style="color:var(--text-dim);font-size:13px;font-style:italic">No living clan members. The bloodline must begin anew.</p>';
+    return;
+  }
+
+  successors.forEach((member, i) => {
+    const numElem = member.elements.length;
+    const icons   = member.elements.map(e => ELEMENTS.find(x=>x.name===e).icon).join('');
+    const inheritedQi = Math.floor(char.qi * 0.10);
+    const card = document.createElement('div');
+    card.className = 'successor-card';
+    card.onclick   = () => chooseSuccessor(i, inheritedQi);
+    card.innerHTML = `
+      <div class="s-name">${icons} ${member.name}</div>
+      <div class="s-desc">
+        ${ROOT_INFO_TABLE[numElem-1].grade} · Age ${Math.floor(member.age)} · ${REALMS[member.realmIdx].name}<br>
+        STR ${member.stats.str} · INT ${member.stats.int} · CHA ${member.stats.cha}<br>
+        Inherits ${inheritedQi} Qi from the previous cultivator
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+function chooseSuccessor(memberIdx, inheritedQi) {
+  const members   = GS.clan.members.filter(m => m.alive);
+  const chosen    = members[memberIdx];
+
+  // Convert the member object into a hero
+  const heroElements = [...chosen.elements];
+  GS.clan.members    = GS.clan.members.filter(m => m !== chosen); // remove from members
+  GS.clan.generation++;
+  GS.log = [];
+
+  GS.char = createChar({ name: chosen.name, elements: heroElements, isHero: true, isSuccessor: true, inheritedQi });
+  // Preserve their existing stats (they already lived and grew)
+  GS.char.stats = { ...chosen.stats };
+  GS.char.age   = chosen.age;
+  GS.char.lifespan = chosen.lifespan + inheritedQi * 0.05; // slight bonus from inheritance
+
+  addLog(`Generation ${GS.clan.generation}. ${chosen.name} takes up the mantle of the ${GS.clan.name}.`, 'event');
+  addLog(`Treasury: ${GS.clan.gold} gold · Library: ${GS.clan.library.length} manuals · Members: ${GS.clan.members.length}`, 'system');
+  if (inheritedQi > 0) addLog(`You inherit ${inheritedQi} Qi from the previous cultivator's legacy.`, 'success');
+
+  showScreen('screen-game');
+  updateSectButtons();
+  renderAll();
+}
+
+function doNewBloodline() {
+  const savedClan = { ...GS.clan, members: [...GS.clan.members] };
+  savedClan.generation++;
+  GS.clan      = savedClan;
+  GS.clan.members = GS.clan.members.filter(m => m.alive);
+  GS.log       = [];
+  selectedElements = [];
+  document.getElementById('char-name-input').value = '';
+  buildRootGrid(); updateRootInfo();
+  showScreen('screen-create');
+}
+
+/* ═══════════════════════════════════════════════════════
+   ██████  RENDER
+═══════════════════════════════════════════════════════ */
+
+function renderAll() {
+  if (!GS.char) return;
+  renderStats();
+  renderLog();
+  updateBreakthroughBtn();
+  updateSectButtons();
+}
+
+function renderStats() {
+  const char   = GS.char;
+  const realm  = currentRealm();
+  const region = currentRegion();
+
+  document.getElementById('hdr-name').textContent  = char.name;
+  document.getElementById('hdr-realm').textContent = `${realm.name.toUpperCase()} · ${region.name}`;
+  document.getElementById('hdr-age').textContent   = Math.floor(char.age);
+  document.getElementById('hdr-qi').textContent    = Math.floor(char.qi);
+  document.getElementById('hdr-gold').textContent  = GS.clan.gold;
+
+  // Job display
+  const occEl = document.getElementById('hdr-job');
+  if (char.occupation) {
+    const occ = OCCUPATIONS.find(o => o.id === char.occupation);
+    occEl.textContent = occ ? occ.icon + ' ' + occ.name : '—';
+  } else { occEl.textContent = 'None'; }
+
+  // Combat stats (with manual bonuses applied)
+  document.getElementById('hdr-str').textContent = effectiveStat('str');
+  document.getElementById('hdr-int').textContent = effectiveStat('int');
+  document.getElementById('hdr-cha').textContent = effectiveStat('cha');
+
+  // Clan
+  document.getElementById('hdr-members').textContent = GS.clan.members.length;
+  document.getElementById('hdr-manuals').textContent = `${char.equippedManuals.length}/2`;
+
+  // Sect badge
+  const sectBadge = document.getElementById('hdr-sect');
+  if (char.sect) {
+    sectBadge.textContent = `⛩ ${char.sect.name} R${char.sect.rank}`;
+    sectBadge.style.display = 'inline-block';
+  } else {
+    sectBadge.style.display = 'none';
+  }
+
+  // Root chips
+  const rootsEl = document.getElementById('hdr-roots');
+  // Keep sect badge in the container — rebuild only root chips
+  const oldChips = rootsEl.querySelectorAll('.root-chip');
+  oldChips.forEach(c => c.remove());
+  char.elements.forEach(eName => {
+    const el   = ELEMENTS.find(e => e.name === eName);
+    const chip = document.createElement('span');
+    chip.className = 'root-chip';
+    chip.textContent = `${el.icon} ${el.name}`;
+    chip.style.cssText = el.style;
+    rootsEl.insertBefore(chip, sectBadge);
+  });
+
+  // Qi bar
+  const qiBar = document.getElementById('qi-bar');
+  const qiCap = realm.qiCap;
+  const qiMin = realm.qiRequired || 0;
+  if (!qiCap || qiCap === Infinity) { qiBar.style.width = '0%'; }
+  else {
+    const pct = Math.min(100, ((char.qi - qiMin) / (qiCap - qiMin)) * 100);
+    qiBar.style.width = pct + '%';
+  }
+}
+
+function renderLog() {
+  const container = document.getElementById('game-log');
+  container.innerHTML = '';
+  GS.log.slice(-60).forEach(e => {
+    const div = document.createElement('div');
+    div.className = `log-entry type-${e.type}`;
+    div.innerHTML = `<span class="log-age">Age ${e.age}</span>${e.text}`;
+    container.appendChild(div);
+  });
+  container.scrollTop = container.scrollHeight;
+}
+
+function addLog(text, type = 'system') {
+  if (!text) return;
+  GS.log.push({ age: Math.floor(GS.char.age), text, type });
+  renderLog();
+}
+
+function updateBreakthroughBtn() {
+  const char  = GS.char;
+  const realm = currentRealm();
+  const btn   = document.getElementById('btn-breakthrough');
+  const ready = char.qi >= realm.qiCap && realm.qiCap > 0;
+  btn.style.borderColor = ready ? 'var(--gold)' : '';
+  btn.style.color       = ready ? 'var(--gold)' : '';
+}
+
+function switchTab(btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.action-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(btn.dataset.tab).classList.add('active');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function openModal(title, content) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-content').innerHTML = content;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+/* ═══════════════════════════════════════════════════════
+   ██████  UTILITIES
+═══════════════════════════════════════════════════════ */
+
+function pick(arr)   { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ██████  INIT
+═══════════════════════════════════════════════════════ */
+(function init() {
+  buildRootGrid();
+  randomizeName();
+  randomizeClan();
+})();
+</script>
+</body>
+</html>
